@@ -31,14 +31,40 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+function auth(req,res,next){
+  console.log(req.headers);
+  var authHeader = req.headers.authorization;
+  if(!authHeader){
+    var err = new Error('not authenticated!');
+    res.setHeader('WWW-Authenticate','Basic');
+    err.status = 401;
+    next(err);
+    return;
+  }
+
+  var auth = new Buffer(authHeader.split(' ')[1],'base64').toString().split(':');
+  var user = auth[0];
+  var pass = auth[1];
+  if(user == 'admin' && pass == 'password'){
+    next();
+  } else {
+    var err = new Error('you are not authenticated!');
+    res.setHeader('WWW-Authenticate','Basic');
+    next(err);
+    return;
+  }
+}
+
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(auth);
 app.use('/', index);
 app.use('/users', users);
 app.use('/dishes/',dishRouter);
