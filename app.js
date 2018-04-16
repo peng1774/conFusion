@@ -11,6 +11,9 @@ var dishRouter = require('./routes/dishRouter');
 var promoRouter = require('./routes/promotionRouter');
 var leaderRouter = require('./routes/leaderRouter');
 
+var session = require('express-session');
+var FileStore = require('session-file-store')(session);
+
 //this is for mongoose connection
 const mongoose = require('mongoose');
 mongoose.Promise = require('bluebird');
@@ -39,13 +42,61 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 
-app.use(cookieParser('12345'));
+// app.use(cookieParser('12345'));
+
+// function auth(req,res,next){
+//   //if(!req.signedCookies.user)
+  
+//   // if no cookie
+//   if(!req.signedCookies.user){
+//     var authHeader = req.headers.authorization;
+//     console.log(authHeader);
+//     //if there is no authentication
+//     if(!authHeader){
+//       var err = new Error("no creds!");
+//       res.setHeader('WWW-Authenticate','Basic');
+//       return next(err);
+//     }
+
+//     var auth = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(':');
+//     var user = auth[0];
+//     var pass = auth[1];
+//     if(user == 'admin' && pass == 'password'){
+//       res.cookie('user','admin');
+//       res.setHeader('WWW-Authenticate','Basic');
+//       return next();
+//     }
+//     var err = new Error("wrong creds!");
+//     res.setHeader('WWW-Authenticate','Basic');
+//     return next(err);
+//   }
+//   // else there is cookie
+//   else {
+//     if(req.signedCookies.user == 'admin'){
+//       next();
+//     }
+//     var err = new Error("invalid cookie!");
+//     res.setHeader('WWW-Authenticate','Basic');
+//     return next(err);
+//   }
+// }
+
+
+
+app.use(session({
+  name: 'session-id',
+  secret: '12345-67890-09876-54321',
+  saveUninitialized: false,
+  resave: false,
+  store: new FileStore()
+}));
 
 function auth(req,res,next){
   //if(!req.signedCookies.user)
-  
+  console.log(req.session);
+
   // if no cookie
-  if(!req.signedCookies.user){
+  if(!req.session.user){
     var authHeader = req.headers.authorization;
     console.log(authHeader);
     //if there is no authentication
@@ -58,8 +109,8 @@ function auth(req,res,next){
     var auth = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(':');
     var user = auth[0];
     var pass = auth[1];
-    if(user == 'admin' && pass == 'password'){
-      res.cookie('user','admin');
+    if(user === 'admin' && pass === 'password'){
+      res.session.user = 'admin';
       res.setHeader('WWW-Authenticate','Basic');
       return next();
     }
@@ -69,17 +120,61 @@ function auth(req,res,next){
   }
   // else there is cookie
   else {
-    if(req.signedCookies.user == 'admin'){
+    if(req.session.user === 'admin'){
       next();
     }
-    var err = new Error("invalid cookie!");
+    var err = new Error("invalid session!");
     res.setHeader('WWW-Authenticate','Basic');
     return next(err);
   }
 }
 
 
+app.use(session({
+  name: 'session-id',
+  secret: '12345-67890-09876-54321',
+  saveUninitialized: false,
+  resave: false,
+  store: new FileStore()
+}));
 
+function auth(req,res,next){
+  //if(!req.signedCookies.user)
+  console.log(req.session);
+
+  // if no cookie
+  if(!req.session.user){
+    var authHeader = req.headers.authorization;
+    console.log(authHeader);
+    //if there is no authentication
+    if(!authHeader){
+      var err = new Error("no creds!");
+      res.setHeader('WWW-Authenticate','Basic');
+      return next(err);
+    }
+
+    var auth = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(':');
+    var user = auth[0];
+    var pass = auth[1];
+    if(user === 'admin' && pass === 'password'){
+      res.session.user = 'admin';
+      res.setHeader('WWW-Authenticate','Basic');
+      return next();
+    }
+    var err = new Error("wrong creds!");
+    res.setHeader('WWW-Authenticate','Basic');
+    return next(err);
+  }
+  // else there is cookie
+  else {
+    if(req.session.user === 'admin'){
+      next();
+    }
+    var err = new Error("invalid session!");
+    res.setHeader('WWW-Authenticate','Basic');
+    return next(err);
+  }
+}
 
 
 
