@@ -110,7 +110,7 @@ function auth(req,res,next){
     var user = auth[0];
     var pass = auth[1];
     if(user === 'admin' && pass === 'password'){
-      res.session.user = 'admin';
+      req.session.user = 'admin';
       res.setHeader('WWW-Authenticate','Basic');
       return next();
     }
@@ -121,7 +121,7 @@ function auth(req,res,next){
   // else there is cookie
   else {
     if(req.session.user === 'admin'){
-      next();
+      return next();
     }
     var err = new Error("invalid session!");
     res.setHeader('WWW-Authenticate','Basic');
